@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata } from "../node_modules/next";
 import { Inter } from "next/font/google";
 import "./app.css";
 
