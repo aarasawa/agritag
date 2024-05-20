@@ -9,6 +9,9 @@ const loRes28 = localFont({
 export const metadata: Metadata = {
   title: "AgriTag",
   description: "A system for indexing pesticide applications in California.",
+  icons: {
+    shortcut: "/favicon.ico",
+  },
 };
 
 export default function RootLayout({
