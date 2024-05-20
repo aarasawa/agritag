@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import localFont from 'next/font/local';
-import "./app.css";
 
 const loRes28 = localFont({
   src: '../public/fonts/LoRes12OTNarrow.ttf'

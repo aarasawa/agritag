@@ -1,63 +1,30 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { generateClient } from "aws-amplify/data";
-import type { Schema } from "@/amplify/data/resource";
-import "./../app/app.css";
 import { Amplify } from "aws-amplify";
 import outputs from "@/amplify_outputs.json";
 import "@aws-amplify/ui-react/styles.css";
-import { Authenticator } from '@aws-amplify/ui-react';
-import '@aws-amplify/ui-react/styles.css';
+import dynamic from 'next/dynamic';
+import styles from './page.module.css';
+
+const Map = dynamic(() => import('./components/Map'), {
+  ssr: false,
+});
 
 Amplify.configure(outputs);
 
-const client = generateClient<Schema>();
-
 export default function App() {
-  const [todos, setTodos] = useState<Array<Schema["Todo"]["type"]>>([]);
-
-  function listTodos() {
-    client.models.Todo.observeQuery().subscribe({
-      next: (data) => setTodos([...data.items]),
-    });
-  }
-
-  useEffect(() => {
-    listTodos();
-  }, []);
-
-  function createTodo() {
-    client.models.Todo.create({
-      content: window.prompt("Todo content"),
-    });
-  }
-
-  function deleteTodo(id: string) {
-    client.models.Todo.delete({ id });
-  }
 
   return (
-    <Authenticator>
-      {({ signOut, user }) => (
-        <main>
-          <h1> 
-            { user?.signInDetails?.loginId }'s Todo'
-          </h1>
-          <button onClick={createTodo}>+ new</button>
-          <ul>
-            {todos.map((todo) => (
-              <li 
-                onClick={() => deleteTodo(todo.id)}
-                key={todo.id}
-              >
-                  {todo.content}
-              </li>
-            ))}
-          </ul>
-          <button onClick={signOut}>Sign out</button>
-        </main>
-      )}
-    </Authenticator>
+    <div className={styles.container}>
+      <Map />
+      <div className={styles.overlay}>
+        <div className={styles.widget} style={{ top: '10%', left: '10%' }}>
+          Widget 1
+        </div>
+        <div className={styles.widget} style={{ top: '30%', left: '50%' }}>
+          Widget 2
+        </div>
+      </div>
+    </div>
   );
 }
