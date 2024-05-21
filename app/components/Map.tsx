@@ -1,6 +1,8 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import 'mapbox-gl/dist/mapbox-gl.css';
-import mapboxgl from 'mapbox-gl';
+import mapboxgl, { MapboxGeoJSONFeature, GeoJSONSource } from 'mapbox-gl';
+import styles from './Map.module.css';
+import MarkerInfoTile from './MarkerInfoTile';
 
 mapboxgl.accessToken = 'pk.eyJ1IjoiYWFyYXNhd2EiLCJhIjoiY2x3ZXF2NnVwMW4ydDJrcWtzNWt0anZjYSJ9.MkqwuCtkj7I8CtiTsg-MrA';
 
@@ -8,6 +10,11 @@ interface Marker {
   lng: number;
   lat: number;
   name: string;
+}
+
+interface PointGeometry {
+  type: 'Point';
+  coordinates: [number, number];
 }
 
 const markers = [
@@ -19,7 +26,8 @@ const markers = [
 
 const Map: React.FC = () => {
   const mapContainer = useRef<HTMLDivElement | null>(null);
-  
+  const [selectedMarker, setSelectedMarker] = useState<Marker | null>(null);
+
   useEffect(() => {
     if (!mapContainer.current) return;
 
@@ -35,36 +43,110 @@ const Map: React.FC = () => {
       map.setMaxBounds(bounds);
       map.fitBounds(bounds, { padding: 20 });
 
-      // Group markers by coordinates
-      const markerGroups: { [key: string]: Marker[] } = markers.reduce((groups, marker) => {
-        const key = `${marker.lng},${marker.lat}`;
-        if (!groups[key]) {
-          groups[key] = [];
+      // Add a GeoJSON source with clustered markers
+      map.addSource('markers', {
+        type: 'geojson',
+        data: {
+          type: 'FeatureCollection',
+          features: markers.map(marker => ({
+            type: 'Feature',
+            properties: marker,
+            geometry: {
+              type: 'Point',
+              coordinates: [marker.lng, marker.lat]
+            } as PointGeometry
+          }))
+        },
+        cluster: true,
+        clusterMaxZoom: 14,
+        clusterRadius: 50
+      });
+
+      // Add cluster layer
+      map.addLayer({
+        id: 'clusters',
+        type: 'circle',
+        source: 'markers',
+        filter: ['has', 'point_count'],
+        paint: {
+          'circle-color': '#51bbd6',
+          'circle-radius': 20,
+          'circle-stroke-width': 1,
+          'circle-stroke-color': '#fff'
         }
-        groups[key].push(marker);
-        return groups;
-      }, {} as { [key: string]: Marker[] });
+      });
 
-      // Add grouped markers to the map
-      Object.keys(markerGroups).forEach(key => {
-        const [lng, lat] = key.split(',').map(Number);
-        const group = markerGroups[key];
+      // Add cluster count layer
+      map.addLayer({
+        id: 'cluster-count',
+        type: 'symbol',
+        source: 'markers',
+        filter: ['has', 'point_count'],
+        layout: {
+          'text-field': '{point_count_abbreviated}',
+          'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Bold'],
+          'text-size': 12
+        }
+      });
+
+      // Add unclustered point layer
+      map.addLayer({
+        id: 'unclustered-point',
+        type: 'circle',
+        source: 'markers',
+        filter: ['!', ['has', 'point_count']],
+        paint: {
+          'circle-color': '#11b4da',
+          'circle-radius': 6,
+          'circle-stroke-width': 1,
+          'circle-stroke-color': '#fff'
+        }
+      });
+
+      // Add click event for clusters
+      map.on('click', 'clusters', (e) => {
+        const features = map.queryRenderedFeatures(e.point, { layers: ['clusters'] });
+        if (!features.length) return;
+
+        const clusterId = features[0].properties?.cluster_id;
+        if (clusterId === undefined) return;
         
-        const popupContent = `
-          <div>
-            <h3>Markers at this location:</h3>
-            <ul>
-              ${group.map(marker => `<li>${marker.name}</li>`).join('')}
-            </ul>
-          </div>
-        `;
+        const source = map.getSource('markers') as GeoJSONSource;
+        source.getClusterExpansionZoom(clusterId, (err, zoom) => {
+          if (err) return;
 
-        const popup = new mapboxgl.Popup({ offset: 25 }).setHTML(popupContent);
+          map.easeTo({
+            center: (features[0].geometry as PointGeometry).coordinates,
+            zoom: zoom
+          });
+        });
+      });
 
-        new mapboxgl.Marker()
-          .setLngLat([lng, lat])
-          .setPopup(popup)
-          .addTo(map);
+      // Add click event for unclustered points
+      map.on('click', 'clusters', (e) => {
+        const features = map.queryRenderedFeatures(e.point, { layers: ['clusters'] }) as MapboxGeoJSONFeature[];
+        if (!features.length) return;
+
+        const clusterId = features[0].properties?.cluster_id;
+        if (clusterId === undefined) return;
+
+        const source = map.getSource('markers') as GeoJSONSource;
+        source.getClusterExpansionZoom(clusterId, (err, zoom) => {
+          if (err) return;
+
+          map.easeTo({
+            center: (features[0].geometry as PointGeometry).coordinates,
+            zoom: zoom
+          });
+        });
+      });
+
+      // Change the cursor to a pointer when the mouse is over the clusters layer
+      map.on('mouseenter', 'clusters', () => {
+        map.getCanvas().style.cursor = 'pointer';
+      });
+      map.on('mouseleave', 'clusters', () => {
+        map.getCanvas().style.cursor = '';
       });
     });
 
@@ -73,7 +155,12 @@ const Map: React.FC = () => {
     };
   }, []);
 
-  return <div ref={mapContainer} style={{ width: '100%', height: '100%' }} />;
+  return (
+    <div style={{ position: 'relative', width: '100%', height: '100%' }}>
+      <div ref={ mapContainer } style={{ width: '100%', height: '100%' }} />
+      <MarkerInfoTile marker={selectedMarker} />
+    </div>
+  );
 };
 
 export default Map;
