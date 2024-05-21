@@ -1,0 +1,18 @@
+.popup {
+  background-color: rgba(34, 34, 34, 0.9); /* Dark gray background */
+  color: white; /* White text */
+  border: 1px solid rgba(255, 255, 255, 0.1); /* Light border */
+  padding: 10px;
+  border-radius: 8px;
+  font-family: Arial, sans-serif;
+}
+
+.popup h3 {
+  margin: 0 0 10px 0;
+  font-size: 16px;
+}
+
+.popup p {
+  margin: 0;
+  font-size: 14px;
+}
