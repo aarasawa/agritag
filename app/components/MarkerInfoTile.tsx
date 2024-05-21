@@ -7,23 +7,23 @@ interface Marker {
   name: string;
 }
 
-interface TileProps {
+interface MarkerInfoTileProps {
   marker: Marker | null;
 }
 
-const MarkerInfoTile: React.FC<TileProps> = ({ marker }) => {
-  if (!marker) {
-    return null;
-  }
-
+const MarkerInfoTile: React.FC<MarkerInfoTileProps> = ({ marker }) => {
   return (
     <div className={styles.tile}>
       <h3>Marker Information</h3>
-      <ul>
-        <li><strong>Name:</strong> {marker.name}</li>
-        <li><strong>Longitude:</strong> {marker.lng}</li>
-        <li><strong>Latitude:</strong> {marker.lat}</li>
-      </ul>
+      {marker ? (
+        <ul>
+          <li><strong>Name:</strong> {marker.name}</li>
+          <li><strong>Longitude:</strong> {marker.lng}</li>
+          <li><strong>Latitude:</strong> {marker.lat}</li>
+        </ul>
+      ) : (
+        <p>No marker selected</p>
+      )}
     </div>
   );
 };

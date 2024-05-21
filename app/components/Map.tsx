@@ -20,7 +20,7 @@ interface PointGeometry {
 const markers = [
   { lng: -119.4179, lat: 36.7783, name: 'Marker 1' },
   { lng: -119.4179, lat: 36.7783, name: 'Marker 2' },
-  { lng: -118.4179, lat: 35.7783, name: 'Marker 3' },
+  { lng: -118.4179, lat: 36.7783, name: 'Marker 3' },
   // Add more markers as needed
 ];
 
@@ -37,6 +37,19 @@ const Map: React.FC = () => {
       center: [-119.4179, 36.7783], // Center of California
       zoom: 6, // Adjust zoom level as needed
     });
+
+    // Add map controls
+    const navControl = new mapboxgl.NavigationControl();
+    map.addControl(navControl, 'bottom-right');
+
+    const fullScreenControl = new mapboxgl.FullscreenControl();
+    map.addControl(fullScreenControl, 'bottom-right');
+
+    const scaleControl = new mapboxgl.ScaleControl({
+      maxWidth: 80,
+      unit: 'imperial'
+    });
+    map.addControl(scaleControl, 'bottom-right');
 
     map.on('load', () => {
       const bounds: [number, number, number, number] = [-124.4096, 32.5343, -114.1308, 42.0095];
@@ -97,32 +110,13 @@ const Map: React.FC = () => {
         filter: ['!', ['has', 'point_count']],
         paint: {
           'circle-color': '#11b4da',
-          'circle-radius': 6,
-          'circle-stroke-width': 1,
+          'circle-radius': 10,
+          'circle-stroke-width': 2,
           'circle-stroke-color': '#fff'
         }
       });
 
       // Add click event for clusters
-      map.on('click', 'clusters', (e) => {
-        const features = map.queryRenderedFeatures(e.point, { layers: ['clusters'] });
-        if (!features.length) return;
-
-        const clusterId = features[0].properties?.cluster_id;
-        if (clusterId === undefined) return;
-        
-        const source = map.getSource('markers') as GeoJSONSource;
-        source.getClusterExpansionZoom(clusterId, (err, zoom) => {
-          if (err) return;
-
-          map.easeTo({
-            center: (features[0].geometry as PointGeometry).coordinates,
-            zoom: zoom
-          });
-        });
-      });
-
-      // Add click event for unclustered points
       map.on('click', 'clusters', (e) => {
         const features = map.queryRenderedFeatures(e.point, { layers: ['clusters'] }) as MapboxGeoJSONFeature[];
         if (!features.length) return;
@@ -141,6 +135,29 @@ const Map: React.FC = () => {
         });
       });
 
+      // Add click event for unclustered points
+      map.on('click', 'unclustered-point', (e) => {
+        const features = map.queryRenderedFeatures(e.point, { layers: ['unclustered-point'] }) as MapboxGeoJSONFeature[];
+        if (!features.length) return;
+
+        const feature = features[0];
+        const coordinates = (feature.geometry as PointGeometry).coordinates.slice() as [number, number];
+        const { name, lng, lat } = feature.properties as Marker;
+
+        setSelectedMarker({ lng, lat, name });
+        console.log("Marker clicked: ", { lng, lat, name });
+
+        // Ensure that if the map is zoomed out such that multiple copies of the point are visible, the popup appears over the copy being clicked on
+        while (Math.abs(e.lngLat.lng - coordinates[0]) > 180) {
+          coordinates[0] += e.lngLat.lng > coordinates[0] ? 360 : -360;
+        }
+
+        new mapboxgl.Popup()
+          .setLngLat(coordinates)
+          .setHTML(`<h3>${name}</h3><p>${lng}, ${lat}</p>`)
+          .addTo(map);
+      });
+
       // Change the cursor to a pointer when the mouse is over the clusters layer
       map.on('mouseenter', 'clusters', () => {
         map.getCanvas().style.cursor = 'pointer';
@@ -157,7 +174,7 @@ const Map: React.FC = () => {
 
   return (
     <div style={{ position: 'relative', width: '100%', height: '100%' }}>
-      <div ref={ mapContainer } style={{ width: '100%', height: '100%' }} />
+      <div ref={mapContainer} style={{ width: '100%', height: '100%' }} />
       <MarkerInfoTile marker={selectedMarker} />
     </div>
   );
