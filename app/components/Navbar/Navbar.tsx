@@ -1,7 +1,15 @@
 import React, { useState } from 'react';
 import styles from './Navbar.module.css'; // Import the CSS module
 
-const Navbar = () => {
+interface NavbarProps {
+  signOut: (() => void) | undefined;
+  user: any;
+}
+
+const Navbar: React.FC<NavbarProps> = ({
+  signOut, 
+  user
+}) => {
   const [isExpanded, setIsExpanded] = useState(false);
 
   const toggleNavbar = () => {
@@ -19,6 +27,9 @@ const Navbar = () => {
         <li><a href="/signin">Home</a></li>
         <li><a href="#services">Services</a></li>
         <li><a href="#contact">Contact</a></li>
+        {user && (
+          <li><button onClick={ signOut }> Sign Out </button></li>
+        )}
       </ul>
     </div>
   );
