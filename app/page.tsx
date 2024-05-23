@@ -14,17 +14,17 @@ const Map = dynamic(() => import('./components/Map/Map'), {
 
 Amplify.configure(outputs);
 
-export default function App({ Component, pageProps }: AppProps) {
-  return (
-    <div className={styles.container}>
-      <Authenticator signUpAttributes={['preferred_username']}>
-        {({ signOut, user }) => (
-          <div className={ styles.container }>
-            <Navbar signOut={ signOut } user={ user }/>
-            <Map />
-          </div>
-        )}
-      </Authenticator>
-    </div>
-  );
-}
+const App = () => (
+  <div className={styles.container}>
+    <Authenticator signUpAttributes={['preferred_username']}>
+      {({ signOut, user }) => (
+        <div className={ styles.container }>
+          <Navbar signOut={ signOut } user={ user }/>
+          <Map />
+        </div>
+      )}
+    </Authenticator>
+  </div>
+);
+
+export default App
