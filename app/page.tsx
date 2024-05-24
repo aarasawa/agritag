@@ -1,5 +1,5 @@
 "use client";
-import type { AppProps } from 'next/app';
+import Auth from 'aws-amplify';
 import { Amplify } from "aws-amplify";
 import outputs from "@/amplify_outputs.json";
 import "@aws-amplify/ui-react/styles.css";
@@ -16,7 +16,7 @@ Amplify.configure(outputs);
 
 const App = () => (
   <div className={styles.container}>
-    <Authenticator signUpAttributes={['preferred_username']}>
+    <Authenticator signUpAttributes={['email', 'preferred_username']}>
       {({ signOut, user }) => (
         <div className={ styles.container }>
           <Navbar signOut={ signOut } user={ user }/>

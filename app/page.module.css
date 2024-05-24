@@ -15,38 +15,5 @@
   display: flex;
   justify-content: center;
   align-items: center;
-}
-
-.auth-wrapper {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  width: 100%;
-}
-
-.widget {
-  position: relative;
-  background-color: rgba(255, 255, 255, 0.8);
-  padding: 10px;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  pointer-events: auto; /* Enables interaction with the widget */
-}
-
-/* Other existing styles */
-#map {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  width: 100%;
-}
-
-.overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  height: 100%;
-  width: 100%;
-  pointer-events: none; /* Allows map interactions to pass through */
+  background-color: #1b1b1b;
 }
