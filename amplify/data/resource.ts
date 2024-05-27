@@ -38,8 +38,7 @@ const schema = a
       record_id: a.string(),
       comtrs: a.string(),
       error_flag: a.string(),
-    })
-    .authorization(allow => [allow.publicApiKey().to(['read'])]),
+    }),
 });
 
 export type Schema = ClientSchema<typeof schema>;
