@@ -37,15 +37,20 @@
 
 .navbar ul li {
   margin: 20px 0;
+  list-style: none;
 }
 
 .navbar ul li a {
-  color: white;
   text-decoration: none;
+  color: #fff;
 }
 
 .hamburger {
   cursor: pointer;
+  position: absolute;
+  top: 12.5px;
+  left: 12.5px;
+  z-index: 10;
 }
 
 .hamburger .bar {

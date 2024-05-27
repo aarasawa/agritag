@@ -24,11 +24,11 @@ const Navbar: React.FC<NavbarProps> = ({
         <div className={`${styles.bar} ${styles.bar3}`}></div>
       </div>
       <ul>
-        <li><a href="/signin">Home</a></li>
+        <li><a href="#home">Home</a></li>
         <li><a href="#services">Services</a></li>
         <li><a href="#contact">Contact</a></li>
         {user && (
-          <li><button onClick={ signOut }> Sign Out </button></li>
+          <li><a href="/" onClick={ signOut }> Sign Out </a></li>
         )}
       </ul>
     </div>
